@@ -22,6 +22,9 @@
   <!-- Chart.js - Librería para gráficas y estadísticas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- SweetAlert2 - Alertas y notificaciones modernas -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <!-- Hoja de estilos personalizada con tema moderno -->
   <link rel="stylesheet" href="assets/style/stylesheet.css">
 
@@ -67,20 +70,40 @@
               <span id="user-name">Usuario</span>
             </span>
             
+            <!-- Campanita de notificaciones -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell"></i>
+                <!-- Badge de contador -->
+                <span id="notifications-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                  0
+                </span>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end" id="notifications-dropdown" style="width: 320px; max-width: 90vw; max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                <div class="dropdown-header d-flex justify-content-between align-items-center">
+                  <span class="fw-bold">Notificaciones</span>
+                  <button class="btn btn-sm btn-outline-secondary" id="clear-all-notifications" title="Limpiar todas">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div id="notifications-list">
+                  <div class="dropdown-item-text text-center text-muted py-3" id="no-notifications">
+                    <i class="bi bi-bell-slash fs-4 d-block mb-2"></i>
+                    No hay notificaciones
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <!-- Dropdown de usuario -->
             <div class="dropdown">
               <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
                 <i class="bi bi-gear"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#" data-action="profile">
+                <li><a class="dropdown-item" href="#" data-action="profile" data-bs-toggle="modal" data-bs-target="#profileModal">
                   <i class="bi bi-person me-2"></i>Mi Perfil
-                </a></li>
-                <li><a class="dropdown-item" href="#" data-action="settings">
-                  <i class="bi bi-gear me-2"></i>Configuración
-                </a></li>
-                <li><a class="dropdown-item" href="#" data-action="help">
-                  <i class="bi bi-question-circle me-2"></i>Ayuda
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-danger" href="#" data-action="logout">
@@ -175,6 +198,7 @@
                   <i class="bi bi-eye"></i>
                 </button>
               </div>
+              <div id="passwordStrength"></div>
             </div>
             <div class="mb-3">
               <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
@@ -195,6 +219,256 @@
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="button" class="btn btn-primary" id="registerBtn">
             <i class="bi bi-person-plus me-1"></i>Crear Cuenta
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Perfil de Usuario -->
+  <div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">
+            <i class="bi bi-person-circle me-2"></i>Mi Perfil
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Navegación por pestañas -->
+          <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="profile-info-tab" data-bs-toggle="tab" data-bs-target="#profile-info" type="button" role="tab">
+                <i class="bi bi-person me-1"></i>Información
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="profile-stats-tab" data-bs-toggle="tab" data-bs-target="#profile-stats" type="button" role="tab">
+                <i class="bi bi-graph-up me-1"></i>Estadísticas
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="profile-settings-tab" data-bs-toggle="tab" data-bs-target="#profile-settings" type="button" role="tab">
+                <i class="bi bi-gear me-1"></i>Preferencias
+              </button>
+            </li>
+          </ul>
+
+          <!-- Contenido de las pestañas -->
+          <div class="tab-content" id="profileTabContent">
+            
+            <!-- Pestaña de Información Personal -->
+            <div class="tab-pane fade show active" id="profile-info" role="tabpanel">
+              <form id="profileForm">
+                <div class="row">
+                  <!-- Avatar -->
+                  <div class="col-12 text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                      <div id="userAvatar" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                           style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+                        U
+                      </div>
+                      <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" 
+                              id="changeAvatarBtn" style="width: 32px; height: 32px;">
+                        <i class="bi bi-camera"></i>
+                      </button>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="profileName" class="form-label">Nombre completo *</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-person"></i></span>
+                      <input type="text" class="form-control" id="profileName" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="profileEmail" class="form-label">Email</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                      <input type="email" class="form-control" id="profileEmail" readonly>
+                    </div>
+                    <small class="text-muted">El email no se puede cambiar</small>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="profilePhone" class="form-label">Teléfono</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                      <input type="tel" class="form-control" id="profilePhone">
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="profileLocation" class="form-label">Ubicación</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                      <input type="text" class="form-control" id="profileLocation">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="profileWebsite" class="form-label">Sitio web</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                      <input type="url" class="form-control" id="profileWebsite">
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="profileBirthDate" class="form-label">Fecha de nacimiento</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                      <input type="date" class="form-control" id="profileBirthDate">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="profileBio" class="form-label">Biografía</label>
+                  <textarea class="form-control" id="profileBio" rows="3" placeholder="Cuéntanos algo sobre ti..."></textarea>
+                </div>
+              </form>
+            </div>
+
+            <!-- Pestaña de Estadísticas -->
+            <div class="tab-pane fade" id="profile-stats" role="tabpanel">
+              <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                  <div class="card text-center h-100">
+                    <div class="card-body">
+                      <div class="text-primary fs-2">
+                        <i class="bi bi-check-circle"></i>
+                      </div>
+                      <div class="h4 mb-0" id="stat-completed">0</div>
+                      <small class="text-muted">Completadas</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card text-center h-100">
+                    <div class="card-body">
+                      <div class="text-warning fs-2">
+                        <i class="bi bi-clock"></i>
+                      </div>
+                      <div class="h4 mb-0" id="stat-active">0</div>
+                      <small class="text-muted">Activas</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card text-center h-100">
+                    <div class="card-body">
+                      <div class="text-success fs-2">
+                        <i class="bi bi-trophy"></i>
+                      </div>
+                      <div class="h4 mb-0" id="stat-productivity">0</div>
+                      <small class="text-muted">Productividad</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6 col-md-3">
+                  <div class="card text-center h-100">
+                    <div class="card-body">
+                      <div class="text-info fs-2">
+                        <i class="bi bi-fire"></i>
+                      </div>
+                      <div class="h4 mb-0" id="stat-streak">0</div>
+                      <small class="text-muted">Días seguidos</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div class="card h-100">
+                    <div class="card-header">
+                      <h6 class="mb-0">Actividad de la Semana</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Tareas creadas:</span>
+                        <span class="badge bg-primary" id="week-created">0</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>Tareas completadas:</span>
+                        <span class="badge bg-success" id="week-completed">0</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div class="card h-100">
+                    <div class="card-header">
+                      <h6 class="mb-0">Información de Cuenta</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Miembro desde:</span>
+                        <span id="member-since">-</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Último acceso:</span>
+                        <span id="last-login">-</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>Inicios de sesión:</span>
+                        <span class="badge bg-info" id="login-count">0</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pestaña de Preferencias -->
+            <div class="tab-pane fade" id="profile-settings" role="tabpanel">
+              <form id="preferencesForm">
+
+                <div class="mb-4">
+                  <h6 class="mb-3">Privacidad y Seguridad</h6>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="notificationsSwitch">
+                    <label class="form-check-label" for="notificationsSwitch">
+                      Recibir notificaciones
+                    </label>
+                  </div>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberSessionSwitch">
+                    <label class="form-check-label" for="rememberSessionSwitch">
+                      Recordar sesión por más tiempo
+                    </label>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <h6 class="mb-3">Datos</h6>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="exportProfileBtn">
+                      <i class="bi bi-download me-1"></i>Exportar Perfil
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" id="clearProfileDataBtn">
+                      <i class="bi bi-trash me-1"></i>Limpiar Datos
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveProfileBtn">
+            <i class="bi bi-check-lg me-1"></i>Guardar Cambios
           </button>
         </div>
       </div>
@@ -230,6 +504,50 @@
           <button id="add-btn" class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i>Agregar
           </button>
+        </div>
+
+        <!-- ===== RECORDATORIO ===== -->
+        <div class="mb-3">
+          <label class="form-label small text-secondary">
+            <i class="bi bi-alarm me-1"></i>Recordatorio (opcional):
+          </label>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label for="reminder-date" class="form-label small">Fecha:</label>
+              <div class="input-group input-group-sm reminder-input-group">
+                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                <input id="reminder-date" type="date" class="form-control" 
+                       title="Selecciona la fecha del recordatorio"
+                       placeholder="dd/mm/aaaa"/>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="reminder-time" class="form-label small">Hora:</label>
+              <div class="input-group input-group-sm reminder-input-group">
+                <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                <input id="reminder-time" type="time" class="form-control" 
+                       title="Selecciona la hora del recordatorio"
+                       placeholder="hh:mm"/>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="form-text">
+              <i class="bi bi-info-circle me-1"></i>
+              Se te notificará en la fecha y hora especificada
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-secondary" onclick="setQuickReminder(5)" title="Recordar en 5 minutos">
+                5min
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="setQuickReminder(15)" title="Recordar en 15 minutos">
+                15min
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="setQuickReminder(60)" title="Recordar en 1 hora">
+                1h
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- ===== SISTEMA DE ETIQUETAS ===== -->
@@ -545,6 +863,20 @@
   <!-- Babel Standalone - Transpilador de TypeScript en el navegador -->
   <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
+  <!-- Sistema de alertas modernas con SweetAlert2 -->
+  <script type="text/babel" data-presets="typescript" src="assets/js/sweet-alerts.ts"></script>
+  
+  <!-- Sistema de notificaciones y recordatorios -->
+  <script type="text/babel" data-presets="typescript" src="assets/js/notifications.ts"></script>
+  
+  <!-- Sistema de autenticación mejorado -->
+  <script type="text/babel" data-presets="typescript" src="assets/js/auth.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="assets/js/auth-ui.ts"></script>
+  
+  <!-- Sistema de perfil de usuario -->
+  <script type="text/babel" data-presets="typescript" src="assets/js/user-profile.ts"></script>
+  <script type="text/babel" data-presets="typescript" src="assets/js/profile-ui.ts"></script>
+  
   <!-- Aplicación principal en TypeScript (transpila en el navegador) -->
   <script type="text/babel" data-presets="typescript" src="assets/js/main.ts"></script>
 
