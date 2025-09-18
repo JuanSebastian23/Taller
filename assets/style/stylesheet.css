@@ -1,0 +1,604 @@
+/* =========================================================
+   stylesheet.css — UI moderna “en cajas” para Bootstrap
+   ========================================================= */
+
+/* ---------- Variables con tonalidades claras ---------- */
+:root{
+  --bg: #f0f4ff;                /* fondo base claro */
+  --bg-2: #ffffff;              /* fondo panel blanco */
+  --ink: #1a2332;               /* texto primario oscuro */
+  --muted: #5b6b86;             /* texto secundario */
+  --brand: #4f80ff;             /* primario azul vibrante */
+  --brand-2: #7ba0ff;           /* primario claro */
+  --ok: #22c55e;                /* éxito verde */
+  --danger: #ef4444;            /* peligro rojo */
+  --warn: #f59e0b;              /* warning naranja */
+  --radius-xl: 20px;            /* radios generales */
+  --shadow: 0 18px 40px rgba(79,128,255,.15);
+  --shadow-soft: 0 12px 26px rgba(79,128,255,.08);
+  --border: 1px solid rgba(79,128,255,.12);
+  --glass: rgba(255,255,255,.85);
+  --glass-strong: rgba(255,255,255,.95);
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg: #f8faff;
+    --bg-2: #ffffff;
+    --ink: #1a2332;
+    --muted: #64748b;
+    --brand: #3b82f6;
+    --brand-2: #60a5fa;
+    --ok: #10b981;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --shadow: 0 18px 40px rgba(59, 130, 246, .12);
+    --shadow-soft: 0 12px 26px rgba(59, 130, 246, .08);
+    --border: 1px solid rgba(59, 130, 246, .10);
+    --glass: rgba(255,255,255,.90);
+    --glass-strong: rgba(255,255,255,.96);
+  }
+}
+
+/* ---------- Reset + base ---------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+ body {
+   color: var(--ink);
+   background:
+     radial-gradient(1200px 700px at -10% -10%, rgba(59,130,246,.12), transparent 60%),
+     radial-gradient(1000px 600px at 110% -10%, rgba(147,197,253,.15), transparent 60%),
+     radial-gradient(800px 400px at 50% 110%, rgba(34,197,94,.08), transparent 70%),
+     linear-gradient(135deg, #f8faff 0%, #e0f2fe 50%, #f0f9ff 100%),
+     var(--bg);
+   -webkit-font-smoothing: antialiased;
+   text-rendering: optimizeLegibility;
+ }
+
+ /* ===== MENÚ DE NAVEGACIÓN ===== */
+ #main-navbar {
+   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+   backdrop-filter: saturate(1.2) blur(12px);
+   border-bottom: 1px solid rgba(59,130,246,.12);
+   box-shadow: 0 4px 20px rgba(59,130,246,.08);
+   position: sticky;
+   top: 0;
+   z-index: 1000;
+   margin-bottom: 0;
+ }
+
+ .navbar-brand {
+   font-size: 1.5rem;
+   color: var(--ink) !important;
+   text-decoration: none;
+   transition: all 0.2s ease;
+ }
+
+ .navbar-brand:hover {
+   color: var(--brand) !important;
+   transform: translateY(-1px);
+ }
+
+ .navbar-brand small {
+   font-size: 0.75rem;
+   padding: 2px 6px;
+   background: linear-gradient(135deg, var(--brand), var(--brand-2));
+   color: white;
+   border-radius: 6px;
+   font-weight: 600;
+ }
+
+ /* Navegación simplificada - solo autenticación */
+
+ .navbar-text {
+   color: var(--muted) !important;
+   font-weight: 500;
+   padding: 0.25rem 0.75rem;
+   background: rgba(59,130,246,.06);
+   border-radius: 6px;
+   border: 1px solid rgba(59,130,246,.10);
+ }
+
+ .navbar-toggler {
+   border: none;
+   padding: 0.25rem 0.5rem;
+ }
+
+ .navbar-toggler:focus {
+   box-shadow: 0 0 0 0.2rem rgba(59,130,246,.25);
+ }
+
+ /* Responsive simplificado */
+ @media (max-width: 991.98px) {
+   #navbarNav {
+     padding: 1rem 0;
+   }
+ }
+
+ /* ===== MODALES DE AUTENTICACIÓN ===== */
+ .modal-content {
+   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.94));
+   backdrop-filter: saturate(1.2) blur(12px);
+   border: var(--border);
+   border-radius: 16px;
+   box-shadow: 
+     0 20px 50px rgba(59,130,246,.15),
+     0 8px 30px rgba(59,130,246,.08);
+ }
+
+ .modal-header {
+   padding: 1.5rem 1.5rem 0;
+ }
+
+ .modal-title {
+   color: var(--ink);
+   font-weight: 600;
+ }
+
+ .modal-body {
+   padding: 1rem 1.5rem;
+ }
+
+ .modal-footer {
+   padding: 0 1.5rem 1.5rem;
+ }
+
+ /* Mejorar formularios en modales */
+ .modal .form-label {
+   color: var(--ink);
+   font-weight: 500;
+   margin-bottom: 0.5rem;
+ }
+
+ .modal .input-group-text {
+   background: rgba(59,130,246,.06);
+   border-color: rgba(59,130,246,.15);
+   color: var(--brand);
+ }
+
+ .modal .form-control {
+   border-color: rgba(59,130,246,.15);
+ }
+
+ .modal .form-control:focus {
+   border-color: var(--brand);
+   box-shadow: 0 0 0 0.25rem rgba(59,130,246,.15);
+ }
+
+ .modal .form-check-input:checked {
+   background-color: var(--brand);
+   border-color: var(--brand);
+ }
+
+/* ---------- Superficie principal "en caja" (la .container) ---------- */
+.container{
+  background: linear-gradient(180deg, var(--glass), var(--glass-strong));
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  border: var(--border);
+  padding: clamp(16px, 2vw, 24px);
+  margin-block: clamp(16px, 3vh, 28px);
+  position: relative;
+  overflow: visible; /* Permitir que los dropdowns se muestren fuera */
+}
+
+/* Header */
+.h4, h1, h2, h3 { color: var(--ink); }
+.text-secondary { color: var(--muted) !important; }
+
+/* ---------- Cards globales ---------- */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.90));
+  border: var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease;
+}
+[data-bs-theme="auto"] .card { backdrop-filter: blur(8px); }
+.card:hover{ 
+  transform: translateY(-2px); 
+  box-shadow: var(--shadow); 
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.93));
+}
+.card-header, .card-footer{ 
+  background: transparent; 
+  border-color: rgba(59,130,246,.15); 
+}
+
+/* ---------- Card de acciones ---------- */
+.input-group .form-control{
+  padding: .95rem 1rem;
+  border-radius: 12px;
+  border-color: rgba(59,130,246,.20);
+  background: rgba(255,255,255,.95);
+  color: var(--ink);
+}
+.input-group .form-control:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 0.25rem rgba(59,130,246,.15);
+  background: #ffffff;
+}
+.input-group .input-group-text{
+  border-radius: 12px 0 0 12px;
+  border-color: rgba(59,130,246,.20);
+  background: rgba(255,255,255,.90);
+  color: var(--brand);
+}
+.input-group .btn{ border-radius: 0 12px 12px 0; }
+
+/* ---------- Botones (micro-interacciones) ---------- */
+.btn{
+  transition: transform .08s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease;
+}
+.btn:active{ transform: translateY(1px) scale(.99); }
+.btn-primary{
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
+  border: none;
+  box-shadow: 0 10px 22px color-mix(in oklab, var(--brand) 35%, transparent);
+}
+.btn-outline-danger:hover{ background: color-mix(in oklab, var(--danger) 12%, transparent); }
+.btn-outline-warning{ border-color: color-mix(in oklab, var(--warn) 50%, #888); color: color-mix(in oklab, var(--warn) 70%, #222); }
+.btn-outline-warning:hover{ background: color-mix(in oklab, var(--warn) 16%, transparent); }
+
+/* Filtros (estado activo resaltado) */
+.btn-group [data-filter].active{
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 35%, #fff) inset;
+  border-color: color-mix(in oklab, var(--brand) 55%, #ced4da);
+}
+
+/* ---------- Badges / Contador ---------- */
+.badge.text-bg-light{
+  background: linear-gradient(180deg, #f0f9ff, #e0f2fe);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(59,130,246,.12);
+  border: 1px solid rgba(59,130,246,.10);
+}
+
+/* ---------- Cards de estadísticas ---------- */
+#stats-row .card{
+  position: relative;
+  overflow: hidden;
+}
+#stats-row .card::after{
+  content: "";
+  position: absolute;
+  inset: -30% -30% auto auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--brand) 40%, transparent), transparent 70%);
+  filter: blur(18px);
+  opacity: .45;
+  pointer-events: none;
+}
+
+/* ---------- Grid de tareas (cards) ---------- */
+#list .card{
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+  border: 1px solid rgba(59,130,246,.08);
+}
+.task-title{ 
+  word-break: break-word; 
+  color: var(--ink);
+  font-weight: 500;
+}
+.card.border-success{ 
+  border-color: var(--ok) !important; 
+  background: linear-gradient(180deg, rgba(16,185,129,.05), rgba(255,255,255,.95));
+}
+.card.opacity-75 .task-title{ 
+  text-decoration: line-through; 
+  opacity: .75; 
+  color: var(--muted);
+}
+
+/* Hover claro para acciones */
+.card-footer .btn{ 
+  box-shadow: none; 
+  border-color: rgba(59,130,246,.15);
+}
+.card-footer .btn:hover{
+  box-shadow: 0 8px 18px rgba(59,130,246,.12);
+  transform: translateY(-1px);
+}
+
+/* ---------- Empty state ---------- */
+#empty.d-none{ display: none !important; }
+#empty i{ opacity: .8; }
+
+/* ---------- Checkbox (ligero tuneo) ---------- */
+.form-check-input{
+  width: 1.1rem; height: 1.1rem; cursor: pointer;
+  border-color: rgba(125,139,168,.45);
+}
+.form-check-input:checked{
+  background-color: var(--ok);
+  border-color: color-mix(in oklab, var(--ok) 80%, #000);
+}
+
+/* ---------- Accesibilidad y foco ---------- */
+:focus-visible{
+  outline: 3px solid color-mix(in oklab, var(--brand) 65%, #fff);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ---------- Scrollbar (WebKit) ---------- */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--brand) 35%, #cfd8ea);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ---------- Animaciones suaves ---------- */
+@keyframes popIn { from { transform: scale(.98); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+#list .card{ animation: popIn .16s ease both; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 576px){
+  .container{ padding: 14px; }
+  .btn-group [data-filter]{ font-size: .95rem; }
+}
+
+/* ---------- Pequeños toques ---------- */
+small.fw-normal{ letter-spacing: .2px; }
+
+/* ---------- Dropdown profesional con UX mejorada ---------- */
+.dropdown-menu{
+  position: fixed !important; /* Usar posición fija para estar por encima de todo */
+  z-index: 2147483647 !important; /* Z-index máximo absoluto */
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+  backdrop-filter: saturate(1.2) blur(12px);
+  box-shadow: 
+    0 20px 50px rgba(59,130,246,.15),
+    0 8px 30px rgba(59,130,246,.08),
+    0 0 0 1px rgba(59,130,246,.12),
+    var(--border);
+  padding: 8px 0;
+  margin: 0 !important;
+  animation: dropdownFadeIn 0.2s ease-out;
+  transform-origin: top center;
+  will-change: transform, opacity;
+  isolation: isolate; /* Crear nuevo stacking context */
+}
+
+/* Forzar dropdown por encima de todo */
+.dropdown-menu.show,
+.dropdown-menu[data-bs-popper] {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  transform: none !important;
+}
+
+@keyframes dropdownFadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-8px) scale(0.96); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+.dropdown-item {
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin: 2px 8px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
+  color: white;
+  transform: translateX(2px);
+  box-shadow: 0 4px 12px rgba(43, 111, 255, 0.2);
+}
+
+.dropdown-item.active {
+  background: linear-gradient(180deg, var(--ok), color-mix(in oklab, var(--ok) 80%, #000));
+  color: white;
+  font-weight: 500;
+}
+
+.dropdown-item.active::before {
+  content: "✓";
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.dropdown-divider {
+  border-top: 1px solid rgba(255,255,255,.15);
+  margin: 6px 12px;
+  opacity: 0.6;
+}
+
+/* Botón del dropdown mejorado */
+.btn.dropdown-toggle {
+  position: relative;
+  overflow: visible;
+}
+
+.btn.dropdown-toggle::after {
+  transition: transform 0.2s ease;
+}
+
+.btn.dropdown-toggle[aria-expanded="true"]::after {
+  transform: rotate(180deg);
+}
+
+/* Asegurar que el contenedor padre no corte el dropdown */
+.btn-group {
+  position: static;
+}
+
+/* Asegurar que las cards no interfieran con dropdowns */
+.card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Contenedor de filtros con overflow visible */
+.card .card-body {
+  overflow: visible;
+}
+
+/* Forzar visibilidad del dropdown */
+.dropdown.show .dropdown-menu {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Estilos específicos para dropdown en portal mode */
+body > .dropdown-menu {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  margin: 0 !important;
+  transform: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Asegurar que no hay overflow hidden en el body */
+body {
+  overflow-x: visible !important;
+}
+
+/* Backdrop para el dropdown en portal mode */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483646;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* Scrollbar del dropdown */
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--brand);
+  border-radius: 3px;
+}
+
+ .dropdown-menu::-webkit-scrollbar-track {
+   background: transparent;
+ }
+
+ /* ===== FOOTER ===== */
+ #main-footer {
+   background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.90));
+   backdrop-filter: saturate(1.2) blur(12px);
+   border-top: 1px solid rgba(59,130,246,.12);
+   box-shadow: 0 -4px 20px rgba(59,130,246,.08);
+   margin-top: 3rem;
+   padding: 3rem 0 1.5rem;
+ }
+
+ #main-footer h5,
+ #main-footer h6 {
+   color: var(--ink);
+ }
+
+ #main-footer p,
+ #main-footer .text-muted {
+   color: var(--muted) !important;
+   line-height: 1.6;
+ }
+
+ #main-footer a {
+   transition: all 0.2s ease;
+ }
+
+ #main-footer a:hover {
+   color: var(--brand) !important;
+   transform: translateX(2px);
+ }
+
+ #main-footer .btn-outline-secondary {
+   border-color: rgba(59,130,246,.20);
+   color: var(--muted);
+   width: 35px;
+   height: 35px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+ }
+
+ #main-footer .btn-outline-secondary:hover {
+   background: var(--brand);
+   border-color: var(--brand);
+   color: white;
+   transform: translateY(-2px);
+   box-shadow: 0 4px 12px rgba(59,130,246,.25);
+ }
+
+ /* Badges de tecnologías */
+ #main-footer .badge {
+   font-size: 0.8rem;
+   font-weight: 500;
+   border: 1px solid rgba(59,130,246,.15);
+ }
+
+ /* Línea divisoria */
+ #main-footer hr {
+   border-color: rgba(59,130,246,.15);
+   opacity: 0.6;
+ }
+
+ /* Responsive footer */
+ @media (max-width: 767.98px) {
+   #main-footer {
+     padding: 2rem 0 1rem;
+   }
+   
+   #main-footer .d-flex.gap-3 {
+     flex-wrap: wrap;
+     justify-content: center;
+   }
+   
+   #main-footer .badge {
+     font-size: 0.75rem;
+   }
+ }
+
+ /* Ajustar el body para que el footer sea sticky */
+ html, body {
+   height: 100%;
+ }
+
+ body {
+   display: flex;
+   flex-direction: column;
+ }
+
+ .container {
+   flex: 1;
+ }
