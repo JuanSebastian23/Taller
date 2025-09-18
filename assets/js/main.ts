@@ -27,6 +27,10 @@ interface Task {
   completedAt?: number;          // Timestamp de completado (opcional)
   priority?: "low" | "medium" | "high";  // Prioridad de la tarea (opcional)
   tags?: string[];               // Array de etiquetas asociadas (opcional)
+  reminder?: {                   // Recordatorio de la tarea (opcional)
+    datetime: number;            // Timestamp del recordatorio
+    notified: boolean;           // Si ya se notificó
+  };
 }
 
 /**
@@ -46,25 +50,7 @@ interface Activity {
  * Interfaz que define el estado global de la aplicación
  * @interface AppState
  */
-/**
- * Interfaz que define un usuario del sistema
- */
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  createdAt: number;
-}
-
-/**
- * Interfaz que define el estado de autenticación
- */
-interface AuthState {
-  isLoggedIn: boolean;
-  user: User | null;
-  token?: string;
-}
+// Las interfaces User y AuthState ahora se importan desde auth.ts
 
 interface AppState {
   tasks: Task[];                 // Array de todas las tareas
@@ -74,7 +60,7 @@ interface AppState {
   availableTags: string[];       // Todas las etiquetas disponibles
   activities: Activity[];        // Historial de actividades
   tagFilter: string;             // Filtro de etiqueta activo ("all" o nombre de etiqueta)
-  auth: AuthState;               // Estado de autenticación
+  // auth removido - ahora se maneja con authService
 }
 
 // ===== ESTADO GLOBAL DE LA APLICACIÓN =====
@@ -90,12 +76,8 @@ const state: AppState = {
   selectedTags: [],                                            // Sin etiquetas seleccionadas
   availableTags: ["Trabajo", "Personal", "Estudio", "Urgente"], // Etiquetas predefinidas
   activities: [],                                              // Historial vacío
-  tagFilter: "all",                                            // Mostrar todas las etiquetas por defecto
-  auth: {                                                      // Estado de autenticación
-    isLoggedIn: false,
-    user: null,
-    token: undefined
-  }
+  tagFilter: "all"                                             // Mostrar todas las etiquetas por defecto
+  // auth removido - ahora se maneja con authService
 };
 
 /**
@@ -173,7 +155,7 @@ function clearAllStorage(): void {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(TAGS_STORAGE_KEY);
     localStorage.removeItem(ACTIVITIES_STORAGE_KEY);
-    localStorage.removeItem('auth_state');
+    // auth_state ya no se maneja aquí
   } catch {
     // Ignorar errores - no es crítico
   }
@@ -201,6 +183,10 @@ const $tagSelector = document.getElementById("tag-selector") as HTMLElement;    
 const $newTagInput = document.getElementById("new-tag-input") as HTMLInputElement;    // Input nueva etiqueta
 const $addTagBtn = document.getElementById("add-tag-btn") as HTMLButtonElement;       // Botón crear etiqueta
 const $tagFilterDropdown = document.getElementById("tag-filter-dropdown") as HTMLElement; // Dropdown filtro etiquetas
+
+// Elementos del sistema de recordatorios
+const $reminderDate = document.getElementById("reminder-date") as HTMLInputElement;   // Input fecha recordatorio
+const $reminderTime = document.getElementById("reminder-time") as HTMLInputElement;   // Input hora recordatorio
 
 // Elementos del historial de actividades
 const $historyPanel = document.getElementById("history-panel") as HTMLElement;        // Panel del historial
@@ -335,10 +321,10 @@ function handleFileImport(event: Event): void {
       } else if (file.name.endsWith('.csv')) {
         importFromCSV(content);
       } else {
-        alert('Formato de archivo no soportado. Use .json o .csv');
+        (window as any).showError('Formato no soportado', 'Por favor usa archivos .json o .csv');
       }
     } catch (error) {
-      alert('Error al procesar el archivo: ' + (error as Error).message);
+      (window as any).showError('Error al procesar archivo', 'Error: ' + (error as Error).message);
     }
   };
   
@@ -351,7 +337,7 @@ function handleFileImport(event: Event): void {
  * Restaura completamente el estado de la aplicación
  * @param {string} content - Contenido del archivo JSON
  */
-function importFromJSON(content: string): void {
+async function importFromJSON(content: string): Promise<void> {
   const data = JSON.parse(content);
   
   // Validar estructura básica del archivo
@@ -360,14 +346,14 @@ function importFromJSON(content: string): void {
   }
   
   // Mostrar confirmación con detalles de la importación
-  const ok = confirm(
-    `¿Importar ${data.tasks.length} tareas?\n\n` +
-    `Esto reemplazará todas las tareas actuales.\n` +
-    `Etiquetas disponibles: ${data.availableTags?.length || 0}\n` +
-    `Actividades: ${data.activities?.length || 0}`
+  const confirmed = await (window as any).showConfirm(
+    `¿Importar ${data.tasks.length} tareas?`,
+    `Esto reemplazará todas las tareas actuales.\n\nEtiquetas: ${data.availableTags?.length || 0} | Actividades: ${data.activities?.length || 0}`,
+    'Sí, importar',
+    'Cancelar'
   );
   
-  if (!ok) return;
+  if (!confirmed.isConfirmed) return;
   
   // Importar tareas con conversión de fechas
   state.tasks = data.tasks.map((task: any) => ({
@@ -398,7 +384,10 @@ function importFromJSON(content: string): void {
   addActivity("import", undefined, undefined, `${data.tasks.length} tareas importadas desde JSON`);
   
   // Mostrar confirmación de éxito
-  alert(`Importación exitosa!\n\n- ${state.tasks.length} tareas\n- ${state.availableTags.length} etiquetas\n- ${state.activities.length} actividades`);
+  (window as any).showSuccess(
+    '¡Importación exitosa!', 
+    `Se importaron ${state.tasks.length} tareas, ${state.availableTags.length} etiquetas y ${state.activities.length} actividades`
+  );
 }
 
 /**
@@ -406,7 +395,7 @@ function importFromJSON(content: string): void {
  * Convierte datos tabulares a objetos Task
  * @param {string} content - Contenido del archivo CSV
  */
-function importFromCSV(content: string): void {
+async function importFromCSV(content: string): Promise<void> {
   const lines = content.split('\n');
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
   
@@ -441,9 +430,14 @@ function importFromCSV(content: string): void {
   }
   
   // Confirmar importación
-  const ok = confirm(`¿Importar ${tasks.length} tareas desde CSV?\n\nEsto reemplazará todas las tareas actuales.`);
+  const confirmed = await (window as any).showConfirm(
+    `¿Importar ${tasks.length} tareas desde CSV?`,
+    'Esto reemplazará todas las tareas actuales.',
+    'Sí, importar',
+    'Cancelar'
+  );
   
-  if (!ok) return;
+  if (!confirmed.isConfirmed) return;
   
   // Actualizar estado y renderizar
   state.tasks = tasks;
@@ -454,7 +448,7 @@ function importFromCSV(content: string): void {
   addActivity("import", undefined, undefined, `${tasks.length} tareas importadas desde CSV`);
   
   // Mostrar confirmación de éxito
-  alert(`Importación exitosa!\n\n- ${tasks.length} tareas importadas`);
+  (window as any).showSuccess('¡Importación exitosa!', `Se importaron ${tasks.length} tareas desde CSV`);
 }
 
 // ===== SISTEMA DE ESTADÍSTICAS Y GRÁFICAS =====
@@ -848,12 +842,17 @@ function addActivity(type: Activity["type"], taskId?: string, taskTitle?: string
 }
 
 function clearHistory(): void {
-  const ok = confirm("¿Seguro que quieres limpiar todo el historial de actividades?");
-  if (!ok) return;
-  
-  state.activities = [];
-  saveTasks();
-  renderHistory();
+  (window as any).showDeleteConfirm(
+    "¿Limpiar historial?",
+    "Se eliminará todo el historial de actividades. Esta acción no se puede deshacer."
+  ).then((result: any) => {
+    if (result.isConfirmed) {
+      state.activities = [];
+      saveTasks();
+      renderHistory();
+      (window as any).showToast("Historial limpiado", "success");
+    }
+  });
 }
 
 function toggleHistoryPanel(): void {
@@ -936,6 +935,9 @@ function addTask(title: string): void {
   const trimmed = (title ?? "").trim();
   if (!trimmed) return; // No agregar tareas vacías
   
+  // Obtener datos del recordatorio
+  const reminderDatetime = getReminderDatetime();
+  
   // Crear nueva tarea con etiquetas seleccionadas
   const newTask: Task = { 
     id: uid(), 
@@ -944,17 +946,65 @@ function addTask(title: string): void {
     createdAt: Date.now(),
     tags: [...state.selectedTags]  // Copiar etiquetas seleccionadas
   };
+
+  // Agregar recordatorio si se especificó
+  if (reminderDatetime) {
+    newTask.reminder = {
+      datetime: reminderDatetime,
+      notified: false
+    };
+    
+    // Programar notificación
+    (window as any).scheduleTaskReminder?.(newTask.id, newTask.title, reminderDatetime);
+  }
   
   // Agregar al inicio del array (más reciente primero)
   state.tasks.unshift(newTask);
   state.selectedTags = []; // Limpiar etiquetas seleccionadas
   
   // Registrar actividad en el historial
-  addActivity("create", newTask.id, newTask.title);
+  const activityDetails = reminderDatetime 
+    ? `Con recordatorio: ${new Date(reminderDatetime).toLocaleString()}`
+    : undefined;
+  addActivity("create", newTask.id, newTask.title, activityDetails);
   
-  // Actualizar vista y limpiar input
+  // Actualizar vista y limpiar formulario
   render();
+  clearTaskForm();
+}
+
+/**
+ * Obtiene el datetime del recordatorio desde los inputs
+ */
+function getReminderDatetime(): number | null {
+  const dateValue = $reminderDate.value;
+  const timeValue = $reminderTime.value;
+  
+  if (!dateValue || !timeValue) return null;
+  
+  const reminderDatetime = new Date(`${dateValue}T${timeValue}`).getTime();
+  
+  // Verificar que sea una fecha válida y futura
+  if (isNaN(reminderDatetime) || reminderDatetime <= Date.now()) {
+    return null;
+  }
+  
+  return reminderDatetime;
+}
+
+/**
+ * Limpia el formulario de crear tarea
+ */
+function clearTaskForm(): void {
   $input.value = "";
+  $reminderDate.value = "";
+  $reminderTime.value = "";
+  
+  // Limpiar validaciones y mensajes
+  clearDateValidation();
+  clearTimeValidation();
+  clearReminderMessages();
+  
   $input.focus();
 }
 
@@ -969,6 +1019,20 @@ function toggleTask(id: string): void {
       
       // Registrar actividad en el historial
       addActivity(newDone ? "complete" : "uncomplete", t.id, t.title);
+      
+      // Manejo de recordatorios y notificaciones
+      if (newDone) {
+        // Tarea completada: cancelar recordatorio y crear notificación
+        if (t.reminder) {
+          (window as any).cancelTaskReminder?.(t.id);
+        }
+        (window as any).createTaskCompletedNotification?.(t.title);
+      } else {
+        // Tarea reactivada: reprogramar recordatorio si no ha vencido
+        if (t.reminder && t.reminder.datetime > Date.now()) {
+          (window as any).scheduleTaskReminder?.(t.id, t.title, t.reminder.datetime);
+        }
+      }
       
       return { 
         ...t, 
@@ -1146,71 +1210,84 @@ function renderTagFilter(): void {
 }
 
 /**
- * Muestra los detalles de una tarea en un alert
+ * Muestra los detalles de una tarea usando SweetAlert2
  * @param {string} id - ID de la tarea a visualizar
  */
 function viewTask(id: string): void {
   const t = state.tasks.find(x => x.id === id);
   if (!t) {
-    alert("No se encontró la tarea.");
+    (window as any).showError("Tarea no encontrada", "No se pudo encontrar la tarea solicitada.");
     return;
   }
-  const created = new Date(t.createdAt).toLocaleString();
-  alert(
-    `📄 Detalle de la tarea\n\n` +
-    `ID: ${t.id}\n` +
-    `Título: ${t.title}\n` +
-    `Estado: ${t.done ? "Completada" : "Activa"}\n` +
-    `Creada: ${created}`
-  );
+  
+  // Usar la función especializada de SweetAlert2 para mostrar detalles de tarea
+  (window as any).sweetAlert.showTaskDetails(t);
 }
 
 /**
- * Permite editar el título de una tarea
+ * Permite editar el título de una tarea usando SweetAlert2
  * @param {string} id - ID de la tarea a editar
  */
 function editTaskTitle(id: string): void {
   const t = state.tasks.find(x => x.id === id);
   if (!t) {
-    alert("No se encontró la tarea.");
-    return;
-  }
-  const nuevo = prompt("Nuevo título para la tarea:", t.title);
-  if (nuevo === null) return; // Usuario canceló
-  const trimmed = nuevo.trim();
-  if (!trimmed) {
-    alert("El título no puede estar vacío.");
+    (window as any).showError("Tarea no encontrada", "No se pudo encontrar la tarea solicitada.");
     return;
   }
   
-  // Registrar actividad en el historial
-  addActivity("edit", t.id, trimmed, `De: "${t.title}" a: "${trimmed}"`);
-  
-  // Actualizar la tarea
-  state.tasks = state.tasks.map(x => (x.id === id ? { ...x, title: trimmed } : x));
-  render();
+  (window as any).showInput(
+    "Editar tarea",
+    "Nuevo título para la tarea",
+    t.title,
+    "text"
+  ).then((result: any) => {
+    if (result.isConfirmed && result.value) {
+      const trimmed = result.value.trim();
+      
+      if (!trimmed) {
+        (window as any).showError("Título inválido", "El título no puede estar vacío.");
+        return;
+      }
+      
+      // Registrar actividad en el historial
+      addActivity("edit", t.id, trimmed, `De: "${t.title}" a: "${trimmed}"`);
+      
+      // Actualizar la tarea
+      state.tasks = state.tasks.map(x => (x.id === id ? { ...x, title: trimmed } : x));
+      render();
+      
+      (window as any).showToast("Tarea actualizada correctamente", "success");
+    }
+  });
 }
 
 // ===== FUNCIONES DE RESET Y LIMPIEZA =====
 
 /**
- * Resetea completamente la aplicación
+ * Resetea completamente la aplicación usando SweetAlert2
  * Elimina todas las tareas, etiquetas y actividades
  */
 function resetAll(): void {
-  const ok = confirm("¿Seguro que quieres borrar TODAS las tareas? Esta acción no se puede deshacer.");
-  if (!ok) return;
-  
-  const taskCount = state.tasks.length;
-  if (taskCount > 0) {
-    // Registrar actividad antes de resetear
-    addActivity("reset_all", undefined, undefined, `${taskCount} tareas eliminadas`);
-  }
-  
-  // Limpiar estado y almacenamiento
-  state.tasks = [];
-  clearAllStorage();
-  render();
+  (window as any).sweetAlert.showDangerousConfirm(
+    "Eliminar todas las tareas",
+    "¿Seguro que quieres borrar TODAS las tareas?",
+    "Esta acción NO SE PUEDE DESHACER"
+  ).then((result: any) => {
+    if (result.isConfirmed) {
+      const taskCount = state.tasks.length;
+      if (taskCount > 0) {
+        // Registrar actividad antes de resetear
+        addActivity("reset_all", undefined, undefined, `${taskCount} tareas eliminadas`);
+      }
+      
+      // Limpiar estado y almacenamiento
+      state.tasks = [];
+      clearAllStorage();
+      render();
+      
+      (window as any).showSuccess("¡Listo!", `Se eliminaron ${taskCount} tareas correctamente.`);
+    }
+  });
 }
 
 // ===== FUNCIONES AUXILIARES =====
@@ -1319,6 +1396,7 @@ function render(): void {
 
     const card = document.createElement("div");
     card.className = "card h-100 shadow-sm";
+    card.setAttribute("data-task-id", t.id);  // Para enfoque desde notificaciones
     if (t.done) card.classList.add("border-success", "opacity-75");
 
     // Header de la tarjeta (checkbox + título)
@@ -1367,6 +1445,31 @@ function render(): void {
     
     meta.textContent = createdText + completedText;
     body.appendChild(meta);
+
+    // Agregar indicador de recordatorio si existe
+    if (t.reminder && !t.done) {
+      const reminderDiv = document.createElement("div");
+      reminderDiv.className = "mt-1 small";
+      
+      const reminderTime = new Date(t.reminder.datetime);
+      const now = new Date();
+      const isPastDue = reminderTime < now;
+      
+      const reminderIcon = document.createElement("i");
+      reminderIcon.className = isPastDue ? "bi bi-alarm text-danger me-1" : "bi bi-alarm text-info me-1";
+      
+      const reminderText = document.createElement("span");
+      reminderText.className = isPastDue ? "text-danger" : "text-info";
+      reminderText.textContent = `Recordatorio: ${reminderTime.toLocaleString()}`;
+      
+      if (isPastDue) {
+        reminderText.innerHTML += " <small>(Vencido)</small>";
+      }
+      
+      reminderDiv.appendChild(reminderIcon);
+      reminderDiv.appendChild(reminderText);
+      body.appendChild(reminderDiv);
+    }
 
     // Footer de la tarjeta (botones de acción)
     const footer = document.createElement("div");
@@ -1429,173 +1532,12 @@ function render(): void {
 }
 
 // ===== SISTEMA DE AUTENTICACIÓN =====
-
-/**
- * Simula el login de un usuario
- */
-function loginUser(email: string, password: string): boolean {
-  // Simulación básica de autenticación
-  if (email && password.length >= 6) {
-    const user: User = {
-      id: uid(),
-      name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-      email: email,
-      createdAt: Date.now()
-    };
-    
-    state.auth = {
-      isLoggedIn: true,
-      user: user,
-      token: 'demo_token_' + uid()
-    };
-    
-    // Guardar en localStorage
-    localStorage.setItem('auth_state', JSON.stringify(state.auth));
-    
-    // Actualizar UI
-    updateAuthUI();
-    
-    // Registrar actividad
-    addActivity("create", undefined, undefined, `Usuario ${user.name} inició sesión`);
-    
-    return true;
-  }
-  return false;
-}
-
-/**
- * Registra un nuevo usuario
- */
-function registerUser(name: string, email: string, password: string): boolean {
-  // Validaciones básicas
-  if (!name || !email || password.length < 8) {
-    return false;
-  }
-  
-  const user: User = {
-    id: uid(),
-    name: name,
-    email: email,
-    createdAt: Date.now()
-  };
-  
-  state.auth = {
-    isLoggedIn: true,
-    user: user,
-    token: 'demo_token_' + uid()
-  };
-  
-  // Guardar en localStorage
-  localStorage.setItem('auth_state', JSON.stringify(state.auth));
-  
-  // Actualizar UI
-  updateAuthUI();
-  
-  // Registrar actividad
-  addActivity("create", undefined, undefined, `Nuevo usuario ${user.name} registrado`);
-  
-  return true;
-}
-
-/**
- * Cierra la sesión del usuario
- */
-function logoutUser(): void {
-  const userName = state.auth.user?.name;
-  
-  state.auth = {
-    isLoggedIn: false,
-    user: null,
-    token: undefined
-  };
-  
-  // Limpiar localStorage
-  localStorage.removeItem('auth_state');
-  
-  // Actualizar UI
-  updateAuthUI();
-  
-  // Registrar actividad
-  if (userName) {
-    addActivity("delete", undefined, undefined, `Usuario ${userName} cerró sesión`);
-  }
-}
-
-/**
- * Carga el estado de autenticación desde localStorage
- */
-function loadAuthState(): void {
-  const saved = localStorage.getItem('auth_state');
-  if (saved) {
-    try {
-      state.auth = JSON.parse(saved);
-    } catch (e) {
-      console.warn('Error loading auth state:', e);
-      state.auth = { isLoggedIn: false, user: null };
-    }
-  }
-  updateAuthUI();
-}
-
-/**
- * Actualiza la interfaz según el estado de autenticación
- */
-function updateAuthUI(): void {
-  const guestSection = document.getElementById('auth-guest');
-  const userSection = document.getElementById('auth-user');
-  const userName = document.getElementById('user-name');
-  
-  if (!guestSection || !userSection || !userName) return;
-  
-  if (state.auth.isLoggedIn && state.auth.user) {
-    guestSection.classList.add('d-none');
-    userSection.classList.remove('d-none');
-    userName.textContent = state.auth.user.name;
-  } else {
-    guestSection.classList.remove('d-none');
-    userSection.classList.add('d-none');
-  }
-}
+// Movido a auth.ts y auth-ui.ts para mejor arquitectura
 
 // ===== SISTEMA DE NAVEGACIÓN =====
 // Simplificado: solo sistema de autenticación, sin navegación entre secciones
 
-/**
- * Muestra notificaciones toast
- */
-function showToast(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
-  // Crear elemento toast
-  const toast = document.createElement('div');
-  toast.className = `toast align-items-center text-bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0`;
-  toast.setAttribute('role', 'alert');
-  toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">${message}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  `;
-  
-  // Crear contenedor si no existe
-  let container = document.getElementById('toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container position-fixed top-0 end-0 p-3';
-    container.style.zIndex = '9999';
-    document.body.appendChild(container);
-  }
-  
-  container.appendChild(toast);
-  
-  // Mostrar toast
-  const bsToast = new (window as any).bootstrap.Toast(toast);
-  bsToast.show();
-  
-  // Remover del DOM después de ocultarse
-  toast.addEventListener('hidden.bs.toast', () => {
-    toast.remove();
-  });
-}
+// Función showToast removida - ahora se usa SweetAlert2 globalmente
 
 // ===== SISTEMA DE DROPDOWN PORTAL =====
 
@@ -1714,6 +1656,187 @@ function setupDropdownPortal(button: HTMLElement, dropdownMenu: HTMLElement): vo
   window.addEventListener('scroll', updatePosition);
 }
 
+// ===== FUNCIONES PARA MEJORAR CAMPOS DE FECHA Y HORA =====
+
+/**
+ * Inicializa los campos de recordatorio con valores por defecto y validación
+ */
+function initializeReminderFields(): void {
+  // Establecer fecha mínima (hoy)
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  $reminderDate.min = todayStr;
+  
+  // Agregar event listeners para validación en tiempo real
+  $reminderDate.addEventListener('change', validateReminderDate);
+  $reminderTime.addEventListener('change', validateReminderTime);
+  
+  // Validar cuando ambos campos tengan valor
+  $reminderDate.addEventListener('change', validateCompleteReminder);
+  $reminderTime.addEventListener('change', validateCompleteReminder);
+}
+
+/**
+ * Valida el campo de fecha del recordatorio
+ */
+function validateReminderDate(): void {
+  const dateValue = $reminderDate.value;
+  if (!dateValue) {
+    clearDateValidation();
+    return;
+  }
+  
+  const selectedDate = new Date(dateValue);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+  
+  if (selectedDate < today) {
+    $reminderDate.classList.add('reminder-past');
+    $reminderDate.classList.remove('reminder-valid');
+    showDateError('La fecha no puede ser anterior a hoy');
+  } else {
+    $reminderDate.classList.add('reminder-valid');
+    $reminderDate.classList.remove('reminder-past');
+    clearDateError();
+  }
+}
+
+/**
+ * Valida el campo de hora del recordatorio
+ */
+function validateReminderTime(): void {
+  const timeValue = $reminderTime.value;
+  if (!timeValue) {
+    clearTimeValidation();
+    return;
+  }
+  
+  $reminderTime.classList.add('reminder-valid');
+  clearTimeError();
+}
+
+/**
+ * Valida el recordatorio completo (fecha + hora)
+ */
+function validateCompleteReminder(): void {
+  const dateValue = $reminderDate.value;
+  const timeValue = $reminderTime.value;
+  
+  if (!dateValue || !timeValue) return;
+  
+  const reminderDateTime = new Date(`${dateValue}T${timeValue}`);
+  const now = new Date();
+  
+  if (reminderDateTime <= now) {
+    $reminderTime.classList.add('reminder-past');
+    $reminderTime.classList.remove('reminder-valid');
+    showTimeError('La hora debe ser futura');
+  } else {
+    $reminderTime.classList.add('reminder-valid');
+    $reminderTime.classList.remove('reminder-past');
+    clearTimeError();
+    showReminderSuccess();
+  }
+}
+
+/**
+ * Muestra un error en el campo de fecha
+ */
+function showDateError(message: string): void {
+  clearDateError();
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'invalid-feedback d-block';
+  errorDiv.textContent = message;
+  errorDiv.id = 'date-error';
+  $reminderDate.parentElement?.appendChild(errorDiv);
+}
+
+/**
+ * Limpia el error del campo de fecha
+ */
+function clearDateError(): void {
+  const existingError = document.getElementById('date-error');
+  if (existingError) {
+    existingError.remove();
+  }
+}
+
+/**
+ * Muestra un error en el campo de hora
+ */
+function showTimeError(message: string): void {
+  clearTimeError();
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'invalid-feedback d-block';
+  errorDiv.textContent = message;
+  errorDiv.id = 'time-error';
+  $reminderTime.parentElement?.appendChild(errorDiv);
+}
+
+/**
+ * Limpia el error del campo de hora
+ */
+function clearTimeError(): void {
+  const existingError = document.getElementById('time-error');
+  if (existingError) {
+    existingError.remove();
+  }
+}
+
+/**
+ * Muestra mensaje de éxito para recordatorio válido
+ */
+function showReminderSuccess(): void {
+  clearReminderMessages();
+  const dateValue = $reminderDate.value;
+  const timeValue = $reminderTime.value;
+  const reminderDateTime = new Date(`${dateValue}T${timeValue}`);
+  
+  const successDiv = document.createElement('div');
+  successDiv.className = 'valid-feedback d-block text-success';
+  successDiv.innerHTML = `<i class="bi bi-check-circle me-1"></i>Recordatorio programado para: ${reminderDateTime.toLocaleString()}`;
+  successDiv.id = 'reminder-success';
+  
+  const parentContainer = $reminderTime.parentElement?.parentElement?.parentElement;
+  if (parentContainer) {
+    parentContainer.appendChild(successDiv);
+  }
+}
+
+/**
+ * Limpia todas las validaciones de los campos de recordatorio
+ */
+function clearDateValidation(): void {
+  $reminderDate.classList.remove('reminder-valid', 'reminder-past', 'reminder-invalid');
+}
+
+function clearTimeValidation(): void {
+  $reminderTime.classList.remove('reminder-valid', 'reminder-past', 'reminder-invalid');
+}
+
+function clearReminderMessages(): void {
+  clearDateError();
+  clearTimeError();
+  const existingSuccess = document.getElementById('reminder-success');
+  if (existingSuccess) {
+    existingSuccess.remove();
+  }
+}
+
+/**
+ * Establece un recordatorio rápido (en X minutos)
+ */
+function setQuickReminder(minutes: number): void {
+  const now = new Date();
+  const reminderTime = new Date(now.getTime() + (minutes * 60000));
+  
+  $reminderDate.value = reminderTime.toISOString().split('T')[0];
+  $reminderTime.value = reminderTime.toTimeString().split(':').slice(0, 2).join(':');
+  
+  validateCompleteReminder();
+  (window as any).showToast(`Recordatorio establecido para ${minutes} minutos`, 'info');
+}
+
 // ===== CONFIGURACIÓN DE EVENTOS E INICIALIZACIÓN =====
 function initializeApp(): void {
   // Eventos principales de la aplicación
@@ -1795,6 +1918,9 @@ function initializeApp(): void {
   });
 
   // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
+  // Inicializar campos de recordatorio
+  initializeReminderFields();
+  
   // Limpiar datos existentes para empezar desde cero
   clearAllStorage();
   
@@ -1802,170 +1928,13 @@ function initializeApp(): void {
   state.tasks = loadTasks();
   state.availableTags = loadTags();
   state.activities = loadActivities();
-  loadAuthState();
+  // loadAuthState() removido - ahora se maneja en auth-ui.ts
 
   // ===== EVENTOS DE NAVEGACIÓN =====
   // No hay navegación principal, solo autenticación
 
   // ===== EVENTOS DE AUTENTICACIÓN =====
-  // Toggle password visibility
-  const toggleLoginPassword = document.getElementById('toggleLoginPassword');
-  const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
-  
-  if (toggleLoginPassword) {
-    toggleLoginPassword.addEventListener('click', () => {
-      const input = document.getElementById('loginPassword') as HTMLInputElement;
-      const icon = toggleLoginPassword.querySelector('i');
-      if (input && icon) {
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.className = 'bi bi-eye-slash';
-        } else {
-          input.type = 'password';
-          icon.className = 'bi bi-eye';
-        }
-      }
-    });
-  }
-
-  if (toggleRegisterPassword) {
-    toggleRegisterPassword.addEventListener('click', () => {
-      const input = document.getElementById('registerPassword') as HTMLInputElement;
-      const icon = toggleRegisterPassword.querySelector('i');
-      if (input && icon) {
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.className = 'bi bi-eye-slash';
-        } else {
-          input.type = 'password';
-          icon.className = 'bi bi-eye';
-        }
-      }
-    });
-  }
-
-  // Login form
-  const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      const emailInput = document.getElementById('loginEmail') as HTMLInputElement;
-      const passwordInput = document.getElementById('loginPassword') as HTMLInputElement;
-      
-      if (emailInput && passwordInput) {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-        
-        if (!email || !password) {
-          showToast('Por favor, completa todos los campos', 'error');
-          return;
-        }
-        
-        if (loginUser(email, password)) {
-          showToast('¡Bienvenido! Has iniciado sesión correctamente', 'success');
-          // Cerrar modal
-          const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-          if (modal) modal.hide();
-          // Limpiar formulario
-          emailInput.value = '';
-          passwordInput.value = '';
-        } else {
-          showToast('Credenciales inválidas. Verifica tu email y contraseña', 'error');
-        }
-      }
-    });
-  }
-
-  // Register form
-  const registerBtn = document.getElementById('registerBtn');
-  if (registerBtn) {
-    registerBtn.addEventListener('click', () => {
-      const nameInput = document.getElementById('registerName') as HTMLInputElement;
-      const emailInput = document.getElementById('registerEmail') as HTMLInputElement;
-      const passwordInput = document.getElementById('registerPassword') as HTMLInputElement;
-      const confirmInput = document.getElementById('confirmPassword') as HTMLInputElement;
-      const termsInput = document.getElementById('acceptTerms') as HTMLInputElement;
-      
-      if (nameInput && emailInput && passwordInput && confirmInput && termsInput) {
-        const name = nameInput.value.trim();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value;
-        const confirm = confirmInput.value;
-        
-        // Validaciones
-        if (!name || !email || !password || !confirm) {
-          showToast('Por favor, completa todos los campos', 'error');
-          return;
-        }
-        
-        if (password !== confirm) {
-          showToast('Las contraseñas no coinciden', 'error');
-          return;
-        }
-        
-        if (password.length < 8) {
-          showToast('La contraseña debe tener al menos 8 caracteres', 'error');
-          return;
-        }
-        
-        if (!termsInput.checked) {
-          showToast('Debes aceptar los términos y condiciones', 'error');
-          return;
-        }
-        
-        if (registerUser(name, email, password)) {
-          showToast('¡Cuenta creada exitosamente! Bienvenido', 'success');
-          // Cerrar modal
-          const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-          if (modal) modal.hide();
-          // Limpiar formulario
-          nameInput.value = '';
-          emailInput.value = '';
-          passwordInput.value = '';
-          confirmInput.value = '';
-          termsInput.checked = false;
-        } else {
-          showToast('Error al crear la cuenta. Verifica los datos', 'error');
-        }
-      }
-    });
-  }
-
-  // User dropdown actions
-  const userDropdown = document.getElementById('userDropdown');
-  if (userDropdown) {
-    const dropdown = userDropdown.nextElementSibling;
-    if (dropdown) {
-      dropdown.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        const action = target.getAttribute('data-action') || target.closest('a')?.getAttribute('data-action');
-        
-        if (action) {
-          e.preventDefault();
-          handleUserAction(action);
-        }
-      });
-    }
-  }
-
-  function handleUserAction(action: string): void {
-    switch (action) {
-      case 'profile':
-        showToast('Perfil de usuario - Próximamente', 'info');
-        break;
-      case 'settings':
-        showToast('Configuración - Próximamente', 'info');
-        break;
-      case 'help':
-        showToast('Centro de ayuda - Próximamente', 'info');
-        break;
-      case 'logout':
-        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-          logoutUser();
-          showToast('Sesión cerrada correctamente', 'success');
-        }
-        break;
-    }
-  }
+  // Movidos a auth-ui.ts para mejor organización
 
   // ===== EVENTOS DEL FOOTER =====
   // Footer simplificado para proyecto universitario
