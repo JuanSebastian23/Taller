@@ -2,10 +2,10 @@
 <html lang="es" data-bs-theme="auto">
 <head>
   <meta charset="utf-8" />
-  <title>Mini To-Do — TypeScript → Cards + Bootstrap</title>
+  <title>Sistema de Gestión de Tareas Avanzado — TypeScript + Bootstrap</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap 5 CSS -->
+  <!-- Bootstrap 5 CSS - Framework para UI moderna y responsiva -->
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
     rel="stylesheet"
@@ -13,133 +13,29 @@
     crossorigin="anonymous"
   >
 
-  <!-- Bootstrap Icons -->
+  <!-- Bootstrap Icons - Iconografía consistente -->
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     rel="stylesheet"
   >
 
-  <!-- (Opcional) tu hoja avanzada -->
-  <link rel="stylesheet" href="assets/style/stylesheet.css">
+  <!-- Chart.js - Librería para gráficas y estadísticas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Hoja de estilos personalizada con tema moderno -->
+  <link rel="stylesheet" href="stylesheet.css">
+
+  <!-- Soporte para modo oscuro/claro automático -->
   <meta name="color-scheme" content="light dark">
 </head>
 <body>
-  <!-- Navbar principal -->
-  <nav class="navbar navbar-expand-lg mb-4" style="background: var(--glass); backdrop-filter: blur(10px); border-bottom: var(--border);">
-    <div class="container-fluid px-4">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-        <i class="bi bi-check2-circle text-primary"></i>
-        <span class="h5 mb-0">Mini To-Do</span>
-      </a>
-      
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <i class="bi bi-three-dots-vertical"></i>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto align-items-center gap-1">
-          <li class="nav-item">
-            <a class="nav-link active" href="index.html">
-              <i class="bi bi-house me-1"></i>Inicio
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="calendario.html">
-              <i class="bi bi-calendar3 me-1"></i>Calendario
-            </a>
-          </li>
-        </ul>
-
-        <ul class="navbar-nav align-items-center gap-2">
-          <!-- Notificaciones Dropdown -->
-          <li class="nav-item dropdown">
-            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
-              <i class="bi bi-bell fs-5"></i>
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                2
-              </span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
-              <li><h6 class="dropdown-header">Notificaciones</h6></li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item d-flex gap-3 align-items-center py-2" href="#">
-                  <i class="bi bi-calendar-check text-primary"></i>
-                  <div>
-                    <p class="mb-0 small fw-semibold">Tarea vence pronto</p>
-                    <p class="mb-0 text-secondary small">"Completar informe" vence mañana</p>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item d-flex gap-3 align-items-center py-2" href="#">
-                  <i class="bi bi-bell text-warning"></i>
-                  <div>
-                    <p class="mb-0 small fw-semibold">Recordatorio</p>
-                    <p class="mb-0 text-secondary small">Reunión en 30 minutos</p>
-                  </div>
-                </a>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item text-center small" href="perfil/notificaciones.html">
-                  Ver todas las notificaciones
-                </a>
-              </li>
-            </ul>
-          </li>
-
-          <!-- Perfil Dropdown -->
-          <li class="nav-item dropdown">
-            <a class="nav-link d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
-              <img src="https://ui-avatars.com/api/?name=Usuario&background=6ea8fe&color=fff" 
-                   class="rounded-circle" width="32" height="32" alt="Perfil">
-              <span>Usuario</span>
-              <i class="bi bi-chevron-down small"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="perfil/index.html">
-                  <i class="bi bi-person me-2"></i>Mi Perfil
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="perfil/configuracion.html">
-                  <i class="bi bi-gear me-2"></i>Configuración
-                </a>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item text-danger" href="auth/login.html">
-                  <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                </a>
-              </li>
-            </ul>
-          </li>
-
-          <!-- Botones de Auth (se ocultan cuando el usuario está logueado) -->
-          <li class="nav-item d-none">
-            <a class="nav-link" href="auth/login.html">
-              <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesión
-            </a>
-          </li>
-          <li class="nav-item d-none">
-            <a class="nav-link btn btn-primary text-white px-3" href="auth/registro.html">
-              <i class="bi bi-person-plus me-1"></i>Registrarse
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
   <div class="container py-4">
-    <!-- Barra superior -->
+
+    <!-- ===== BARRA SUPERIOR ===== -->
     <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
       <h1 class="h4 m-0">
-        <i class="bi bi-check2-circle text-primary me-2"></i>Mini To-Do
-        <small class="text-secondary fw-normal">TypeScript sin frameworks</small>
+        <i class="bi bi-check2-circle text-primary me-2"></i>Sistema de Tareas Avanzado
+        <small class="text-secondary fw-normal">TypeScript + Bootstrap + Chart.js</small>
       </h1>
       <div class="d-flex gap-2">
         <a href="index.html" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
@@ -151,10 +47,10 @@
       </div>
     </div>
 
-    <!-- Card principal de acciones -->
+    <!-- ===== PANEL PRINCIPAL DE ACCIONES ===== -->
     <div class="card shadow-sm border-0 mb-3">
       <div class="card-body p-3 p-lg-4">
-        <!-- Input + Agregar -->
+        <!-- ===== CREAR NUEVA TAREA ===== -->
         <div class="input-group mb-3">
           <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-pencil"></i></span>
           <input id="task-input" type="text" class="form-control border-start-0" placeholder="Escribe una tarea y presiona Agregar…" autocomplete="off"/>
@@ -163,12 +59,46 @@
           </button>
         </div>
 
-        <!-- Filtros + contador + limpiar -->
+        <!-- ===== SISTEMA DE ETIQUETAS ===== -->
+        <div class="mb-3">
+          <label class="form-label small text-secondary">Etiquetas (opcional):</label>
+          <div id="tag-selector" class="d-flex flex-wrap gap-2"></div>
+          <div class="mt-2">
+            <input id="new-tag-input" type="text" class="form-control form-control-sm" placeholder="Agregar nueva etiqueta..." style="max-width: 200px;"/>
+            <button id="add-tag-btn" class="btn btn-outline-secondary btn-sm mt-1">
+              <i class="bi bi-plus me-1"></i>Crear etiqueta
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== BÚSQUEDA RÁPIDA ===== -->
+        <div class="input-group mb-3">
+          <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+          <input id="search-input" type="text" class="form-control border-start-0" placeholder="Buscar tareas por título..." autocomplete="off"/>
+          <button id="clear-search" class="btn btn-outline-secondary" style="display: none;">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+
+        <!-- ===== FILTROS Y CONTROLES ===== -->
         <div class="d-flex flex-wrap align-items-center gap-2">
           <div class="btn-group" role="group" aria-label="Filtros">
             <button data-filter="all" class="btn btn-outline-secondary">Todas</button>
             <button data-filter="active" class="btn btn-outline-secondary">Activas</button>
             <button data-filter="done" class="btn btn-outline-secondary">Completadas</button>
+            <button data-filter="recent" class="btn btn-outline-secondary">Recientes</button>
+            <button data-filter="old" class="btn btn-outline-secondary">Antiguas</button>
+          </div>
+
+          <!-- Filtro por etiquetas (dropdown) -->
+          <div class="btn-group" role="group" aria-label="Filtros por etiqueta">
+            <button id="filter-by-tag" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-tags me-1"></i>Por etiqueta
+            </button>
+            <ul id="tag-filter-dropdown" class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" data-tag-filter="all">Todas las etiquetas</a></li>
+              <li><hr class="dropdown-divider"></li>
+            </ul>
           </div>
 
           <div class="ms-auto d-flex align-items-center gap-2">
@@ -176,15 +106,33 @@
             <button id="clear-done" class="btn btn-outline-danger btn-sm">
               <i class="bi bi-trash3 me-1"></i>Eliminar completadas
             </button>
-            <!-- El botón "Resetear lista" se inyecta desde main.ts (ensureResetButton) -->
+          </div>
+        </div>
+
+        <!-- ===== EXPORTAR/IMPORTAR DATOS ===== -->
+        <div class="mt-3 pt-3 border-top">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-secondary small">Datos:</span>
+            <div class="btn-group btn-group-sm" role="group">
+              <button id="export-json" class="btn btn-outline-success">
+                <i class="bi bi-download me-1"></i>Exportar JSON
+              </button>
+              <button id="export-csv" class="btn btn-outline-success">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV
+              </button>
+              <button id="import-data" class="btn btn-outline-primary">
+                <i class="bi bi-upload me-1"></i>Importar
+              </button>
+            </div>
+            <input id="import-file" type="file" accept=".json,.csv" style="display: none;">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Cards de “estadísticas” -->
+    <!-- ===== TARJETAS DE ESTADÍSTICAS RÁPIDAS ===== -->
     <div class="row g-3 mb-3" id="stats-row">
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-3">
         <div class="card h-100 shadow-sm">
           <div class="card-body d-flex align-items-center justify-content-between">
             <div>
@@ -195,7 +143,7 @@
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-3">
         <div class="card h-100 shadow-sm">
           <div class="card-body d-flex align-items-center justify-content-between">
             <div>
@@ -206,7 +154,7 @@
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-3">
         <div class="card h-100 shadow-sm">
           <div class="card-body d-flex align-items-center justify-content-between">
             <div>
@@ -217,19 +165,153 @@
           </div>
         </div>
       </div>
+      <div class="col-12 col-md-3">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+              <div class="text-secondary small">Actividades</div>
+              <div id="stat-activities" class="h4 m-0">0</div>
+            </div>
+            <i class="bi bi-clock-history text-info fs-4"></i>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- GRID de cards de tareas -->
+    <!-- ===== PANEL DE ESTADÍSTICAS Y REPORTES ===== -->
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">
+          <i class="bi bi-graph-up text-success me-2"></i>Estadísticas y Reportes
+        </h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button id="toggle-stats" class="btn btn-outline-secondary">
+            <i class="bi bi-eye me-1"></i>Mostrar/Ocultar
+          </button>
+          <button id="refresh-stats" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+          </button>
+        </div>
+      </div>
+      <div id="stats-panel" class="card-body" style="display: none;">
+        <ul class="nav nav-tabs mb-3" id="stats-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+              <i class="bi bi-pie-chart me-1"></i>Resumen
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab">
+              <i class="bi bi-calendar-week me-1"></i>Semanal
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
+              <i class="bi bi-calendar-month me-1"></i>Mensual
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags" type="button" role="tab">
+              <i class="bi bi-tags me-1"></i>Por Etiquetas
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="stats-tab-content">
+          <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h6 class="mb-0">Estado de Tareas</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="tasks-status-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h6 class="mb-0">Productividad Diaria</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="daily-productivity-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="weekly" role="tabpanel">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Actividad de la Semana</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="weekly-activity-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="monthly" role="tabpanel">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Tendencias del Mes</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="monthly-trends-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="tags" role="tabpanel">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h6 class="mb-0">Distribución por Etiquetas</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="tags-distribution-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h6 class="mb-0">Completadas por Etiqueta</h6>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="tags-completion-chart" width="400" height="200"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GRID DE TAREAS ===== -->
     <div id="list" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3"></div>
 
-    <!-- Estado vacío -->
+    <!-- ===== ESTADO VACÍO ===== -->
     <div id="empty" class="text-secondary text-center py-5 d-none">
       <i class="bi bi-emoji-neutral fs-3 d-block mb-2"></i>
       No hay tareas todavía.
     </div>
   </div>
 
-  <!-- Bootstrap 5 JS -->
+  <!-- ===== SCRIPTS Y DEPENDENCIAS ===== -->
   <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -237,13 +319,13 @@
     defer
   ></script>
 
-  <!-- Transpilación en navegador: Babel Standalone -->
+  <!-- Babel Standalone - Transpilador de TypeScript en el navegador -->
   <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
-  <!-- Tu TypeScript: se transpila en el navegador -->
-  <script src="/assets/js/main.ts"></script>
+  <!-- Aplicación principal en TypeScript (transpila en el navegador) -->
+  <script type="text/babel" data-presets="typescript" src="main.ts"></script>
 
-  <!-- Botón duplicar vista -->
+  <!-- Funcionalidad para duplicar vista en nueva pestaña -->
   <script>
     document.getElementById('open-new')?.addEventListener('click', () => {
       window.open(location.href, '_blank', 'noopener');
