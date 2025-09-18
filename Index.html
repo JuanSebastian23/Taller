@@ -25,8 +25,116 @@
   <meta name="color-scheme" content="light dark">
 </head>
 <body>
-  <div class="container py-4">
+  <!-- Navbar principal -->
+  <nav class="navbar navbar-expand-lg mb-4" style="background: var(--glass); backdrop-filter: blur(10px); border-bottom: var(--border);">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <i class="bi bi-check2-circle text-primary"></i>
+        <span class="h5 mb-0">Mini To-Do</span>
+      </a>
+      
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <i class="bi bi-three-dots-vertical"></i>
+      </button>
 
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto align-items-center gap-1">
+          <li class="nav-item">
+            <a class="nav-link active" href="index.html">
+              <i class="bi bi-house me-1"></i>Inicio
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="calendario.html">
+              <i class="bi bi-calendar3 me-1"></i>Calendario
+            </a>
+          </li>
+        </ul>
+
+        <ul class="navbar-nav align-items-center gap-2">
+          <!-- Notificaciones Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-bell fs-5"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                2
+              </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
+              <li><h6 class="dropdown-header">Notificaciones</h6></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item d-flex gap-3 align-items-center py-2" href="#">
+                  <i class="bi bi-calendar-check text-primary"></i>
+                  <div>
+                    <p class="mb-0 small fw-semibold">Tarea vence pronto</p>
+                    <p class="mb-0 text-secondary small">"Completar informe" vence mañana</p>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item d-flex gap-3 align-items-center py-2" href="#">
+                  <i class="bi bi-bell text-warning"></i>
+                  <div>
+                    <p class="mb-0 small fw-semibold">Recordatorio</p>
+                    <p class="mb-0 text-secondary small">Reunión en 30 minutos</p>
+                  </div>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-center small" href="perfil/notificaciones.html">
+                  Ver todas las notificaciones
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Perfil Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+              <img src="https://ui-avatars.com/api/?name=Usuario&background=6ea8fe&color=fff" 
+                   class="rounded-circle" width="32" height="32" alt="Perfil">
+              <span>Usuario</span>
+              <i class="bi bi-chevron-down small"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="perfil/index.html">
+                  <i class="bi bi-person me-2"></i>Mi Perfil
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="perfil/configuracion.html">
+                  <i class="bi bi-gear me-2"></i>Configuración
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="auth/login.html">
+                  <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Botones de Auth (se ocultan cuando el usuario está logueado) -->
+          <li class="nav-item d-none">
+            <a class="nav-link" href="auth/login.html">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesión
+            </a>
+          </li>
+          <li class="nav-item d-none">
+            <a class="nav-link btn btn-primary text-white px-3" href="auth/registro.html">
+              <i class="bi bi-person-plus me-1"></i>Registrarse
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
     <!-- Barra superior -->
     <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
       <h1 class="h4 m-0">
